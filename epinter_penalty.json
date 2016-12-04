@@ -1,0 +1,33 @@
+// Penalty Addon for Project Cars Dedicated Server
+// 
+// This addon monitors players impact and gives penalty points to them. When the users reach an Warning level,
+// the server sends a message through chat. The player is kicked when he reaches the Kick level. Each lap a player
+// completes a lap without crash, the penalty points are decreased. The same happens when the player crosses the line in P1.
+// 
+// Copyright (C) 2016  Emerson Pinter
+// 
+//    This program is free software; you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation; either version 3 of the License, or
+//    (at your option) any later version.
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//    You should have received a copy of the GNU General Public License
+//    along with this program; if not, write to the Free Software Foundation,
+//    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+
+// Addon version. Used only as informational value.
+version : [ 0, 3 ]
+
+// Addon description. Used only as informational value.
+description : "Penalty Addon for Project Cars Dedicated Server"
+
+// Required API version - major and minor number.
+// If the major number does not match exactly, the addon won't load.
+// If the required minor version is higher than the server's Lua API minor version, the addon won't load.
+apiVersion : [ 3, 0 ]
+
+// Lua files to load.
+files : [ "epinter_penalty.lua" ]

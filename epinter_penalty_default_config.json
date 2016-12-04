@@ -1,0 +1,57 @@
+// Penalty Addon for Project Cars Dedicated Server
+// 
+// This addon monitors players impact and gives penalty points to them. When the users reach an Warning level,
+// the server sends a message through chat. The player is kicked when he reaches the Kick level. Each lap a player
+// completes a lap without crash, the penalty points are decreased. The same happens when the player crosses the line in P1.
+// 
+// Copyright (C) 2016  Emerson Pinter
+// 
+//    This program is free software; you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation; either version 3 of the License, or
+//    (at your option) any later version.
+//    This program is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//    You should have received a copy of the GNU General Public License
+//    along with this program; if not, write to the Free Software Foundation,
+//    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
+
+// Config version
+version : 1
+
+// Default configuration
+config : {
+	//Number of points players will receive when he hit others
+	pointsPerHit: 12
+
+	//Number of points the host will receive when hit others
+	pointsPerHitHost: 4
+
+	//Points that will be reduced from accumulated penalty on every lap a player completes in P1
+	pointsPerLapLead: 6
+
+	//Points that will be reduced from accumulated penalty on every lap a player completes without hit others
+	pointsPerLapClean: 4
+
+	//When the server will warn the players
+	pointsWarn: 24
+
+	//When the server will kick the players
+	pointsKick: 33
+
+	//When 1, the penalty system will only work during the race, not practices or qualify
+	raceOnly: 1
+
+	//The whitelist should contain the steamid (like 7656XXXXXXXXXXXXX) of the player who will never receive penalty points
+	//The numbers should be inside brackets separated by comma:
+	//  whitellist: [
+	//    7656XXXXXXXXXXXXX,
+	//    7656XXXXXXXXXXXXX
+	//  ]
+	whitelist: [
+	]
+
+
+}
