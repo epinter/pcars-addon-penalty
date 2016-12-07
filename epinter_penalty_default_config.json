@@ -23,11 +23,14 @@ version : 1
 
 // Default configuration
 config : {
-	//Number of points players will receive when he hit others
+	//Number of points the player will receive when he hit others
 	pointsPerHit: 12
 
-	//Number of points the host will receive when hit others
+	//Number of points the host will receive when he hit others
 	pointsPerHitHost: 4
+
+	//Number of points the player will receive when he gain a position while cutting track
+	pointsPerCut: 8
 
 	//Points that will be reduced from accumulated penalty on every lap a player completes in P1
 	pointsPerLapLead: 6

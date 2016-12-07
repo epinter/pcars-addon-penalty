@@ -1,11 +1,11 @@
 --[[
 Penalty Addon for Project Cars Dedicated Server
 
-This addon monitors players impact and gives penalty points to them. When the users reach an Warning level,
+This addon monitors players impact and gives penalty points to them. When the player reach an Warning level,
 the server sends a message through chat. The player is kicked when he reaches the Kick level. Each lap a player
 completes a lap without crash, the penalty points are decreased. The same happens when the player crosses the line in P1.
 
-Copyright (C) 2016  Emerson Pinter
+Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter
 
 --]]
 
-local VERSION='0.3.4'
+local VERSION='0.4.5'
 
 local addon_storage = ...
 local config = addon_storage.config
@@ -38,6 +38,7 @@ local kickDelay = 3
 local logPrefix="PENALTYADDON: "
 
 local pointsPerHit = config.pointsPerHit
+local pointsPerCut = config.pointsPerCut
 local pointsPerLapLead = config.pointsPerLapLead
 local pointsPerLapClean = config.pointsPerLapClean
 local pointsWarn = config.pointsWarn
@@ -64,7 +65,7 @@ local function penalty_isSteamUserWhitelisted ( steamId )
 	return false
 end
 
-if not pointsPerHit or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
+if not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
 	penalty_log("Invalid config, addon disabled")
 end
 
@@ -81,11 +82,12 @@ end
 
 local function penalty_send_motd_now( refid )
 	SendChatToMember(refid,"")
-	SendChatToMember(refid,"*** Penalty addon, ALPHA version "..VERSION.." by EPinter ***")
+	SendChatToMember(refid,"*** Penalty addon, BETA version "..VERSION.." by EPinter ***")
 --[[
 	SendChatToMember(refid,"*** https://github.com/epinter/pcars-addon-penalty ***")
 --]]
 	SendChatToMember(refid,"Points per hit: "..pointsPerHit)
+	SendChatToMember(refid,"Points for cut track: "..pointsPerCut)
 	SendChatToMember(refid,"Warning: "..pointsWarn.."pts")
 	SendChatToMember(refid,"Kick: "..pointsKick.."pts")
 	SendChatToMember(refid,"*** Penalty points are earned every time you hit other players ***")
@@ -135,7 +137,7 @@ local function callback_penalty( callback, ... )
 		return
 	end
 
-	if not pointsPerHit or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
+	if not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
 		do return end
 	end
 
@@ -161,8 +163,34 @@ local function callback_penalty( callback, ... )
 			dump( event.attributes )
 			penalty_log("************************")
 		end
+		-- Participant cutTrackEnd
+--[[
+  index: 608
+  participantid: 3
+  refid: 17859
+  time: 1480777461
+  attributes:
+    PenaltyThreshold: 653
+    SkippedTime: 2266
+    ElapsedTime: 1737
+    PenaltyValue: 3525
+    PlaceGain: 1
+  type: Participant
+  name: CutTrackEnd
+--]]
+		if event.type == "Participant" and event.name == "CutTrackEnd" and (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race" then
+			if not playerPoints[ participantid ] then
+				playerPoints[ participantid ] = 0
+			end
+			if event.attributes.PlaceGain > 0 then
+				playerPoints[ participantid ] = playerPoints[ participantid ] + pointsPerCut
+				penalty_sendChatToAll("Penalty: ".. session.members[ participant.attributes.RefId ].name .. " +" .. pointsPerCut.." pts")
+			end
+		
+		end
+
 		-- Participant impact
-		if event.type == "Participant" and event.name == "Impact" and (raceOnly==1 and session.attributes.SessionStage == "Race1") then
+		if event.type == "Participant" and event.name == "Impact" and (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race" then
 			local now = GetServerUptimeMs()
 			penalty_log("***** Impact Event *****")
 			dump( event )
@@ -173,10 +201,10 @@ local function callback_penalty( callback, ... )
 			local otherparticipant = session.participants[ otherparticipantid ]
 			if participantid >= 0 and otherparticipantid >= 0 and participant.attributes.IsPlayer == 1 and otherparticipant.attributes.IsPlayer == 1 then
 				if not playerPoints[ participantid ] then
-					 playerPoints[ participantid ] = 0
+					playerPoints[ participantid ] = 0
 				end
 				if not playerPoints[ otherparticipantid ] then
-					 playerPoints[ otherparticipantid ] = 0
+					playerPoints[ otherparticipantid ] = 0
 				end
 
 				penalty_log( "Participant " .. session.members[ participant.attributes.RefId ].name .. " (" .. participantid .. ") impact:" )
@@ -198,14 +226,16 @@ local function callback_penalty( callback, ... )
 					lastPenaltyTime[ participantid ] = now
 					lastPenaltyLap[ participantid ] = participant.attributes.CurrentLap
 
+					local penaltyPoints = 0
 					if not penalty_isSteamUserWhitelisted(session.members[ participant.attributes.RefId ].steamid) then
-						if session.members[ participant.attributes.RefId ].host == true then
-							playerPoints[ participantid ] = playerPoints[ participantid ] + pointsPerHitHost
+						if session.members[ participant.attributes.RefId ].host then
+							penaltyPoints = pointsPerHitHost
 						else
-							playerPoints[ participantid ] = playerPoints[ participantid ] + pointsPerHit
+							penaltyPoints = pointsPerHit
 						end
-						penalty_sendChatToAll("Penalty: ".. session.members[ participant.attributes.RefId ].name .. " +" .. pointsPerHit.." pts")
 					end
+					playerPoints[ participantid ] = playerPoints[ participantid ] + penaltyPoints
+					penalty_sendChatToAll("Penalty: ".. session.members[ participant.attributes.RefId ].name .. " +" .. penaltyPoints.." pts")
 
 					if playerPoints[ participantid ] >= pointsKick then
 						penalty_sendChatToAll("KICK ".. session.members[ participant.attributes.RefId ].name ..", in "..kickDelay.."s")
@@ -220,14 +250,16 @@ local function callback_penalty( callback, ... )
 					lastPenaltyTime[ otherparticipantid ] = now
 					lastPenaltyLap[ otherparticipantid ] = participant.attributes.CurrentLap
 
+					local penaltyPoints = 0
 					if not penalty_isSteamUserWhitelisted(session.members[ otherparticipant.attributes.RefId ].steamid) then
-						if session.members[ participant.attributes.RefId ].host == true then
-							playerPoints[ otherparticipantid ] = playerPoints[ otherparticipantid ] + pointsPerHitHost
+						if session.members[ otherparticipant.attributes.RefId ].host then
+							penaltyPoints = pointsPerHitHost
 						else
-							playerPoints[ otherparticipantid ] = playerPoints[ otherparticipantid ] + pointsPerHit
+							penaltyPoints = pointsPerHit
 						end
-						penalty_sendChatToAll("Penalty: ".. session.members[ otherparticipant.attributes.RefId ].name .. " +" .. pointsPerHit.." pts")
 					end
+					playerPoints[ otherparticipantid ] = playerPoints[ otherparticipantid ] + penaltyPoints
+					penalty_sendChatToAll("Penalty: ".. session.members[ otherparticipant.attributes.RefId ].name .. " +" .. penaltyPoints.." pts")
 
 					if playerPoints[ otherparticipantid ] >= pointsKick then
 						penalty_sendChatToAll("KICK ".. session.members[ otherparticipant.attributes.RefId ].name ..", in "..kickDelay.."s")
@@ -237,6 +269,8 @@ local function callback_penalty( callback, ... )
 					end
 				end
 			end
+			dump(participant)
+			dump(otherparticipant)
 			penalty_log("************************")
 		end
 	end
@@ -285,6 +319,7 @@ local function callback_penalty( callback, ... )
 		if newState == "Running" then
 			penalty_log("Penalty addon config loaded:")
 			penalty_log("  pointsPerHit = " .. pointsPerHit)
+			penalty_log("  pointsPerCut = " .. pointsPerCut)
 			penalty_log("  pointsPerHitHost = " .. pointsPerHitHost)
 			penalty_log("  pointsPerLapLead = " .. pointsPerLapLead)
 			penalty_log("  pointsPerLapClean = " .. pointsPerLapClean)
