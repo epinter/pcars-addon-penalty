@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local VERSION='0.4.5'
+local VERSION='0.5.3'
 
 local addon_storage = ...
 local config = addon_storage.config
@@ -35,6 +35,7 @@ local playerPoints = {}
 local scheduled_sends_motd = {}
 local penaltyDelay = 3
 local kickDelay = 3
+local raceStartDelay = 4
 local logPrefix="PENALTYADDON: "
 
 local pointsPerHit = config.pointsPerHit
@@ -88,6 +89,7 @@ local function penalty_send_motd_now( refid )
 --]]
 	SendChatToMember(refid,"Points per hit: "..pointsPerHit)
 	SendChatToMember(refid,"Points for cut track: "..pointsPerCut)
+--	SendChatToMember(refid,"Points for crash on race start: "..(pointsPerHit * 2).."pts")
 	SendChatToMember(refid,"Warning: "..pointsWarn.."pts")
 	SendChatToMember(refid,"Kick: "..pointsKick.."pts")
 	SendChatToMember(refid,"*** Penalty points are earned every time you hit other players ***")
@@ -220,7 +222,19 @@ local function callback_penalty( callback, ... )
 					otherParticipantPos = otherparticipant.attributes.GridPosition
 				end
 
-				if ( not lastAccident[ participantid ] or ( lastAccident [ participantid ] and lastAccident [ participantid ] < delay )) and participantPos > otherParticipantPos then
+				local firstCrash = 0
+				if ( not lastAccident[ participantid ]
+						or ( lastAccident [ participantid ] and lastAccident [ participantid ] < delay )
+						) and participantPos > otherParticipantPos then
+					local next = next
+					if next(lastAccident) == nil
+							and session.attributes.SessionStage == "Race1"
+							and participant.attributes.Sector1Time <= (raceStartDelay * 1000)
+							and participant.attributes.Sector2Time == 0
+							and participant.attributes.Sector3Time == 0
+							and participant.attributes.CurrentLap == 1 then
+						firstCrash = 1
+					end
 					lastAccident[ participantid ] = now
 					lastAccident[ otherparticipantid ] = now
 					lastPenaltyTime[ participantid ] = now
@@ -234,6 +248,9 @@ local function callback_penalty( callback, ... )
 							penaltyPoints = pointsPerHit
 						end
 					end
+					if firstCrash == 1 then
+						penaltyPoints = penaltyPoints * 2
+					end
 					playerPoints[ participantid ] = playerPoints[ participantid ] + penaltyPoints
 					penalty_sendChatToAll("Penalty: ".. session.members[ participant.attributes.RefId ].name .. " +" .. penaltyPoints.." pts")
 
@@ -244,7 +261,19 @@ local function callback_penalty( callback, ... )
 						penalty_sendChatToAll("WARN ".. session.members[ participant.attributes.RefId ].name .. " " .. playerPoints[ participantid ].."pts /"..pointsKick)
 					end
 				end
-				if ( not lastAccident[ otherparticipantid ] or ( lastAccident [ otherparticipantid ] and lastAccident [ otherparticipantid ] < delay )) and otherParticipantPos > participantPos  then
+				if ( not lastAccident[ otherparticipantid ]
+						or ( lastAccident [ otherparticipantid ] and lastAccident [ otherparticipantid ] < delay )
+						) and otherParticipantPos > participantPos  then
+					local next = next
+					local firstCrash = 0
+					if next(lastAccident) == nil
+							and session.attributes.SessionStage == "Race1"
+							and otherparticipant.attributes.Sector1Time <= (raceStartDelay * 1000)
+							and otherparticipant.attributes.Sector2Time == 0
+							and otherparticipant.attributes.Sector3Time == 0
+							and otherparticipant.attributes.CurrentLap == 1 then
+						firstCrash = 1
+					end
 					lastAccident[ otherparticipantid ] = now
 					lastAccident[ participantid ] = now
 					lastPenaltyTime[ otherparticipantid ] = now
@@ -257,6 +286,9 @@ local function callback_penalty( callback, ... )
 						else
 							penaltyPoints = pointsPerHit
 						end
+					end
+					if firstCrash == 1 then
+						penaltyPoints = penaltyPoints * 2
 					end
 					playerPoints[ otherparticipantid ] = playerPoints[ otherparticipantid ] + penaltyPoints
 					penalty_sendChatToAll("Penalty: ".. session.members[ otherparticipant.attributes.RefId ].name .. " +" .. penaltyPoints.." pts")
