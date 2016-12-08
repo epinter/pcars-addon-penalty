@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local VERSION='0.5.3'
+local VERSION='0.5.5'
 
 local addon_storage = ...
 local config = addon_storage.config
@@ -84,14 +84,16 @@ end
 local function penalty_send_motd_now( refid )
 	SendChatToMember(refid,"")
 	SendChatToMember(refid,"*** Penalty addon, BETA version "..VERSION.." by EPinter ***")
---[[
 	SendChatToMember(refid,"*** https://github.com/epinter/pcars-addon-penalty ***")
---]]
-	SendChatToMember(refid,"Points per hit: "..pointsPerHit)
-	SendChatToMember(refid,"Points for cut track: "..pointsPerCut)
---	SendChatToMember(refid,"Points for crash on race start: "..(pointsPerHit * 2).."pts")
+	SendChatToMember(refid,"Penalty Points: ")
+	SendChatToMember(refid,"  Each impact: +"..pointsPerHit.."pts")
+	SendChatToMember(refid,"  Cutting track: +"..pointsPerCut.."pts")
+	SendChatToMember(refid,"  First impact on race start: +"..(pointsPerHit * 2).."pts")
+	SendChatToMember(refid,"  Each clean lap: -"..pointsPerLapClean.."pts")
+	SendChatToMember(refid,"  Each lap as P1: -"..pointsPerLapLead.."pts")
 	SendChatToMember(refid,"Warning: "..pointsWarn.."pts")
 	SendChatToMember(refid,"Kick: "..pointsKick.."pts")
+	SendChatToMember(refid,"")
 	SendChatToMember(refid,"*** Penalty points are earned every time you hit other players ***")
 	SendChatToMember(refid,"*** Clean laps reduces penalty points, each lap in P1 too. ***")
 	SendChatToMember(refid,"")
