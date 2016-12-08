@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local VERSION='0.5.5'
+local VERSION='0.6.0'
 
 local addon_storage = ...
 local config = addon_storage.config
@@ -168,20 +168,6 @@ local function callback_penalty( callback, ... )
 			penalty_log("************************")
 		end
 		-- Participant cutTrackEnd
---[[
-  index: 608
-  participantid: 3
-  refid: 17859
-  time: 1480777461
-  attributes:
-    PenaltyThreshold: 653
-    SkippedTime: 2266
-    ElapsedTime: 1737
-    PenaltyValue: 3525
-    PlaceGain: 1
-  type: Participant
-  name: CutTrackEnd
---]]
 		if event.type == "Participant" and event.name == "CutTrackEnd" and (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race" then
 			if not playerPoints[ participantid ] then
 				playerPoints[ participantid ] = 0
@@ -309,22 +295,6 @@ local function callback_penalty( callback, ... )
 		end
 	end
 
-	if callback == Callback.ParticipantAttributesChanged then
---		local participantid, attrlist = ...
---		local participant = session.participants[ participantid ]
---		local attrset = table.list_to_set( attrlist )
---		if attrset.CurrentLap then
---			penalty_log( "Participant " .. participant.attributes.Name .. " (" .. participantid .. ") entering lap " .. participant.attributes.CurrentLap )
---		end
---		if attrset.FastestLapTime then
---			penalty_log( "Participant " .. participant.attributes.Name .. " (" .. participantid .. ") new fastest lap time: " .. participant.attributes.FastestLapTime )
---		end
---		if attrset.RacePosition then
---			penalty_log( "Participant " .. participant.attributes.Name .. " (" .. participantid .. ") new race position: " .. participant.attributes.RacePosition )
---		end
-	end
-
-	-- Dump events for whole session when it ends.
 	if callback == Callback.EventLogged then
 		local event = ...
 		if ( event.type == "Session" ) and ( event.name == "SessionCreated" ) then
@@ -345,8 +315,6 @@ local function callback_penalty( callback, ... )
 		end
 	end
 
-	-- Testing/loggin.
---	penalty_log( "Callback fired - " .. value_to_callback[ callback ] )
 	if callback == Callback.ServerStateChanged then
 		local oldState, newState = ...
 		penalty_log( "Server state changed from " .. oldState .. " to " .. newState )
@@ -366,81 +334,26 @@ local function callback_penalty( callback, ... )
 				penalty_log("  steamid whitelisted: "..v)
 			end
 		end
---		--penalty_log( "Server: " ); dump( server, "  " )
---		--penalty_log( "Session: " ); dump( session, "  " )
 	elseif callback == Callback.SessionManagerStateChanged then
 		local oldState, newState = ...
 		penalty_log( "Session manager state changed from " .. oldState .. " to " .. newState )
-		--dump( session )
-	elseif callback == Callback.SessionAttributesChanged then
---		local dirtyList = ...
---		penalty_log( "Changed attributes: " )
---		for _, name in ipairs( dirtyList ) do
---			penalty_log( "- " .. name .. " = " .. tostring( session.attributes[ name ] ) )
---		end
---		--dump( session )
-	elseif callback == Callback.MemberJoined then
---		local refId = ...
---		local name = session.members[ refId ].name;
---		penalty_log( "Member " .. name .. " (" .. refId ..") has joined" )
---		dump( session.members[ refId ], "  " )
 	elseif callback == Callback.MemberStateChanged then
 		local refid, _, new_state = ...
 		if new_state == "Connected" then
 			penalty_send_motd_to( refid )
 		end
---		local refId, oldState, newState = ...
---		local name = session.members[ refId ].name;
---		penalty_log( "Member " .. name .. " (" .. refId ..") changed state from " .. oldState .. " to " .. newState )
-	elseif callback == Callback.MemberAttributesChanged then
---		local refId, dirtyList = ...
---		local member = session.members[ refId ]
---		local name = member.name;
---		penalty_log( "Member " .. name .. " (" .. refId ..") changed attributes:" )
---		for _, name in ipairs( dirtyList ) do
---			penalty_log( "- " .. name .. " = " .. tostring( member.attributes[ name ] ) )
---		end
-	elseif callback == Callback.HostMigrated then
---		local refId = ...
---		local name = session.members[ refId ].name;
---		penalty_log( "Host migrated to " .. name .. " (" .. refId ..")" )
-	elseif callback == Callback.MemberLeft then
---		local refId = ...
---		local name = session.members[ refId ].name;
---		penalty_log( "Member " .. name .. " (" .. refId ..") has left" )
 	elseif callback == Callback.ParticipantCreated then
 		local participantId = ...
 		lastAccident[ participantId ] = nil
 		lastPenaltyTime[ participantId ] = nil
 		lastPenaltyLap[ participantId ] = nil
 		playerPoints[ participantId ] = nil
---		local participant = session.participants[ participantId ]
---		local owner = session.members[ participant.attributes.RefId ]
---		local ownerName = "unknown"
---		if owner then
---			ownerName = owner.name
---		end
---		penalty_log( "Participant " .. participantId .. " has been created, owned by member " .. ownerName )
---		dump( participant )
-	elseif callback == Callback.ParticipantAttributesChanged then
---		local participantId, dirtyList = ...
---		local participant = session.participants[ participantId ]
---		penalty_log( "Participant " .. participantId .. " changed attributes:" )
---		for _, name in ipairs( dirtyList ) do
---			penalty_log( "- " .. name .. " = " .. tostring( participant.attributes[ name ] ) )
---		end
 	elseif callback == Callback.ParticipantRemoved then
 		local participantId = ...
 		lastAccident[ participantId ] = nil
 		lastPenaltyTime[ participantId ] = nil
 		lastPenaltyLap[ participantId ] = nil
 		playerPoints[ participantId ] = nil
---		local name = session.members[ refId ].name;
---		penalty_log( "Participant " .. participantId .. " has been removed" )
-	elseif callback == Callback.EventLogged then
---		local event = ...
---		penalty_log( "Event: " )
---		dump( event, "  " )
 	end
 end
 
