@@ -157,7 +157,7 @@ local function callback_penalty( callback, ... )
 					if ( playerPoints[ participantid ] - pointsPerLapLead ) >= 0 and participantPos == 1 then
 						playerPoints[ participantid ] = playerPoints[ participantid ] - pointsPerLapLead
 					end
-					if ( playerPoints[ participantid ] - pointsPerLapClean ) >= 0 and participant.attributes.CurrentLap >= 1 and participant.attributes.CurrentLap >  lastPenaltyLap[ participantid ] then
+					if lastPenaltyLap[ participantid ] and ( playerPoints[ participantid ] - pointsPerLapClean ) >= 0 and participant.attributes.CurrentLap >= 1 and participant.attributes.CurrentLap >  lastPenaltyLap[ participantid ] then
 						playerPoints[ participantid ] = playerPoints[ participantid ] - pointsPerLapClean
 					end
 					SendChatToMember(participant.attributes.RefId,"YOUR points: ".. playerPoints[ participantid ])
