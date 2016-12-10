@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local VERSION='0.7.0'
+local VERSION='0.7.2'
 
 local addon_storage = ...
 local config = addon_storage.config
@@ -221,7 +221,8 @@ local function callback_penalty( callback, ... )
 				local firstCrash = 0
 				if ( not lastAccident[ participantid ]
 						or ( lastAccident [ participantid ] and lastAccident [ participantid ] < delay )
-						) and participantPos > otherParticipantPos then
+						) and participantPos > otherParticipantPos
+						and participant.attributes.CurrentLap <= session.attributes.Race1Length then
 					local next = next
 					if next(lastAccident) == nil
 							and enableRaceStartPenalty == 1
@@ -260,7 +261,8 @@ local function callback_penalty( callback, ... )
 				end
 				if ( not lastAccident[ otherparticipantid ]
 						or ( lastAccident [ otherparticipantid ] and lastAccident [ otherparticipantid ] < delay )
-						) and otherParticipantPos > participantPos  then
+						) and otherParticipantPos > participantPos 
+						and otherparticipant.attributes.CurrentLap <= session.attributes.Race1Length then
 					local next = next
 					local firstCrash = 0
 					if next(lastAccident) == nil
