@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local VERSION='0.7.2'
+local VERSION='0.8.0'
 
 local addon_storage = ...
 local config = addon_storage.config
@@ -48,6 +48,7 @@ local pointsWarn = config.pointsWarn
 local pointsKick = config.pointsKick
 local pointsPerHitHost = config.pointsPerHitHost
 local raceOnly = config.raceOnly
+local tempBanTime = config.tempBanTime
 
 
 if type( config.whitelist ) ~= "table" then config.whitelist = {} end
@@ -70,7 +71,7 @@ local function penalty_isSteamUserWhitelisted ( steamId )
 	return false
 end
 
-if enableRaceStartPenalty == nil or enableCutTrackPenalty == nil or not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
+if enableRaceStartPenalty == nil or enableCutTrackPenalty == nil or not tempBanTime or not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
 	penalty_log("Invalid config, addon disabled")
 end
 
@@ -129,7 +130,7 @@ local function penalty_tick()
 	for refId, time in pairs( to_kick ) do
 		if now >= time then
 			penalty_log( "Kicking " .. refId )
-			KickMember( refId, 120 )
+			KickMember( refId, tempBanTime )
 			to_kick[ refId ] = nil
 		end
 	end
@@ -149,7 +150,7 @@ local function callback_penalty( callback, ... )
 		return
 	end
 
-	if not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
+	if not tempBanTime or not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
 		do return end
 	end
 
@@ -344,6 +345,7 @@ local function callback_penalty( callback, ... )
 			penalty_log("  raceOnly = " .. raceOnly)
 			penalty_log("  enableRaceStartPenalty = " .. enableRaceStartPenalty)
 			penalty_log("  enableCutTrackPenalty = " .. enableCutTrackPenalty)
+			penalty_log("  tempBanTime = " .. tempBanTime)
 			for k,v in pairs ( config.whitelist ) do
 				penalty_log("  steamid whitelisted: "..v)
 			end
