@@ -47,6 +47,12 @@ config : {
 	//When 1, the penalty system will only work during the race, not practices or qualify
 	raceOnly: 1
 
+	//When 1, the first player to crash during race start will be penalized with 'pointsPerHit x 2'
+	enableRaceStartPenalty: 1
+
+	//When 1, the player will be penalized when he cuts track and gain position while offtrack
+	enableCutTrackPenalty: 1
+
 	//The whitelist should contain the steamid (like 7656XXXXXXXXXXXXX) of the player who will never receive penalty points
 	//The numbers should be inside brackets separated by comma:
 	//  whitellist: [

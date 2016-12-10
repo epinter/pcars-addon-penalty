@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local VERSION='0.6.0'
+local VERSION='0.7.0'
 
 local addon_storage = ...
 local config = addon_storage.config
@@ -38,6 +38,8 @@ local kickDelay = 3
 local raceStartDelay = 4
 local logPrefix="PENALTYADDON: "
 
+local enableRaceStartPenalty = config.enableRaceStartPenalty
+local enableCutTrackPenalty = config.enableCutTrackPenalty
 local pointsPerHit = config.pointsPerHit
 local pointsPerCut = config.pointsPerCut
 local pointsPerLapLead = config.pointsPerLapLead
@@ -46,6 +48,8 @@ local pointsWarn = config.pointsWarn
 local pointsKick = config.pointsKick
 local pointsPerHitHost = config.pointsPerHitHost
 local raceOnly = config.raceOnly
+
+
 if type( config.whitelist ) ~= "table" then config.whitelist = {} end
 
 local function penalty_log( msg )
@@ -66,7 +70,7 @@ local function penalty_isSteamUserWhitelisted ( steamId )
 	return false
 end
 
-if not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
+if enableRaceStartPenalty == nil or enableCutTrackPenalty == nil or not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
 	penalty_log("Invalid config, addon disabled")
 end
 
@@ -87,8 +91,12 @@ local function penalty_send_motd_now( refid )
 	SendChatToMember(refid,"*** https://github.com/epinter/pcars-addon-penalty ***")
 	SendChatToMember(refid,"Penalty Points: ")
 	SendChatToMember(refid,"  Each impact: +"..pointsPerHit.."pts")
-	SendChatToMember(refid,"  Cutting track: +"..pointsPerCut.."pts")
-	SendChatToMember(refid,"  First impact on race start: +"..(pointsPerHit * 2).."pts")
+	if enableCutTrackPenalty == 1 then
+		SendChatToMember(refid,"  Cutting track: +"..pointsPerCut.."pts")
+	end
+	if enableRaceStartPenalty == 1 then
+		SendChatToMember(refid,"  First impact on race start: +"..(pointsPerHit * 2).."pts")
+	end
 	SendChatToMember(refid,"  Each clean lap: -"..pointsPerLapClean.."pts")
 	SendChatToMember(refid,"  Each lap as P1: -"..pointsPerLapLead.."pts")
 	SendChatToMember(refid,"Warning: "..pointsWarn.."pts")
@@ -172,7 +180,7 @@ local function callback_penalty( callback, ... )
 			if not playerPoints[ participantid ] then
 				playerPoints[ participantid ] = 0
 			end
-			if event.attributes.PlaceGain > 0 then
+			if event.attributes.PlaceGain > 0 and enableCutTrackPenalty == 1 then
 				playerPoints[ participantid ] = playerPoints[ participantid ] + pointsPerCut
 				penalty_sendChatToAll("Penalty: ".. session.members[ participant.attributes.RefId ].name .. " +" .. pointsPerCut.." pts")
 			end
@@ -216,6 +224,7 @@ local function callback_penalty( callback, ... )
 						) and participantPos > otherParticipantPos then
 					local next = next
 					if next(lastAccident) == nil
+							and enableRaceStartPenalty == 1
 							and session.attributes.SessionStage == "Race1"
 							and participant.attributes.Sector1Time <= (raceStartDelay * 1000)
 							and participant.attributes.Sector2Time == 0
@@ -255,6 +264,7 @@ local function callback_penalty( callback, ... )
 					local next = next
 					local firstCrash = 0
 					if next(lastAccident) == nil
+							and enableRaceStartPenalty == 1
 							and session.attributes.SessionStage == "Race1"
 							and otherparticipant.attributes.Sector1Time <= (raceStartDelay * 1000)
 							and otherparticipant.attributes.Sector2Time == 0
@@ -327,9 +337,11 @@ local function callback_penalty( callback, ... )
 			penalty_log("  pointsPerLapClean = " .. pointsPerLapClean)
 			penalty_log("  pointsWarn = " .. pointsWarn)
 			penalty_log("  pointsKick = " .. pointsKick)
-			penalty_log("  raceOnly = " .. raceOnly)
 			penalty_log("  penaltyDelay = " .. penaltyDelay)
 			penalty_log("  kickDelay = " .. kickDelay)
+			penalty_log("  raceOnly = " .. raceOnly)
+			penalty_log("  enableRaceStartPenalty = " .. enableRaceStartPenalty)
+			penalty_log("  enableCutTrackPenalty = " .. enableCutTrackPenalty)
 			for k,v in pairs ( config.whitelist ) do
 				penalty_log("  steamid whitelisted: "..v)
 			end
