@@ -159,7 +159,9 @@ local function callback_penalty( callback, ... )
 		if event.type == "Participant" and event.name == "Lap" then
 			participantid = event.participantid
 			participant = session.participants[ participantid ]
-			penalty_log( "**** Participant " .. session.members[ participant.attributes.RefId ].name .. " (" .. participantid .. ") lap:" )
+			if config.debug == 1 then
+				penalty_log( "**** Participant " .. session.members[ participant.attributes.RefId ].name .. " (" .. participantid .. ") lap:" )
+			end
 			if participant.attributes.RacePosition then
 				local participantPos = participant.attributes.RacePosition
 				if playerPoints[ participantid ] and playerPoints[ participantid ] > 0 then
@@ -173,8 +175,10 @@ local function callback_penalty( callback, ... )
 				end
 			end
 
-			dump( event.attributes )
-			penalty_log("************************")
+			if config.debug == 1 then
+				dump( event.attributes )
+				penalty_log("************************")
+			end
 		end
 		-- Participant cutTrackEnd
 		if event.type == "Participant" and event.name == "CutTrackEnd" and (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race" then
@@ -191,8 +195,10 @@ local function callback_penalty( callback, ... )
 		-- Participant impact
 		if event.type == "Participant" and event.name == "Impact" and (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race" then
 			local now = GetServerUptimeMs()
-			penalty_log("***** Impact Event *****")
-			dump( event )
+			if config.debug == 1 then
+				penalty_log("***** Impact Event *****")
+				dump( event )
+			end
 			delay = GetServerUptimeMs() - (penaltyDelay * 1000)
 			participantid = event.participantid
 			otherparticipantid = event.attributes.OtherParticipantId
@@ -206,7 +212,9 @@ local function callback_penalty( callback, ... )
 					playerPoints[ otherparticipantid ] = 0
 				end
 
-				penalty_log( "Participant " .. session.members[ participant.attributes.RefId ].name .. " (" .. participantid .. ") impact:" )
+				if config.debug == 1 then
+					penalty_log( "Participant " .. session.members[ participant.attributes.RefId ].name .. " (" .. participantid .. ") impact:" )
+				end
 
 				local participantPos
 				local otherParticipantPos
@@ -302,9 +310,11 @@ local function callback_penalty( callback, ... )
 					end
 				end
 			end
-			dump(participant)
-			dump(otherparticipant)
-			penalty_log("************************")
+			if config.debug == 1 then
+				dump(participant)
+				dump(otherparticipant)
+				penalty_log("************************")
+			end
 		end
 	end
 
@@ -346,6 +356,7 @@ local function callback_penalty( callback, ... )
 			penalty_log("  enableRaceStartPenalty = " .. enableRaceStartPenalty)
 			penalty_log("  enableCutTrackPenalty = " .. enableCutTrackPenalty)
 			penalty_log("  tempBanTime = " .. tempBanTime)
+			penalty_log("  debug = " .. config.debug)
 			for k,v in pairs ( config.whitelist ) do
 				penalty_log("  steamid whitelisted: "..v)
 			end
