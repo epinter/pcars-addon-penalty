@@ -62,6 +62,11 @@ local function penalty_sendChatToAll( msg )
 	SendChatToAll(msg)
 end
 
+local function penalty_sendChatToMember( refid, msg )
+	penalty_log(msg)
+	SendChatToMember(refid,msg)
+end
+
 local function penalty_isSteamUserWhitelisted ( steamId )
 	for k,v in pairs ( config.whitelist ) do
 		if (""..v) == steamId then
@@ -262,10 +267,10 @@ local function callback_penalty( callback, ... )
 					penalty_sendChatToAll("Penalty: ".. session.members[ participant.attributes.RefId ].name .. " +" .. penaltyPoints.." pts")
 
 					if playerPoints[ participantid ] >= pointsKick then
-						penalty_sendChatToAll("KICK ".. session.members[ participant.attributes.RefId ].name ..", in "..kickDelay.."s")
+						penalty_sendChatToMember(participant.attributes.RefId, "KICK ".. session.members[ participant.attributes.RefId ].name ..", in "..kickDelay.."s")
 						to_kick [ participant.attributes.RefId ] =  now + (kickDelay*1000)
 					elseif  playerPoints[ participantid ] >= pointsWarn then
-						penalty_sendChatToAll("WARN ".. session.members[ participant.attributes.RefId ].name .. " " .. playerPoints[ participantid ].."pts /"..pointsKick)
+						penalty_sendChatToMember(participant.attributes.RefId, "WARN ".. session.members[ participant.attributes.RefId ].name .. " " .. playerPoints[ participantid ].."pts /"..pointsKick)
 					end
 				end
 				if ( not lastAccident[ otherparticipantid ]
@@ -303,10 +308,10 @@ local function callback_penalty( callback, ... )
 					penalty_sendChatToAll("Penalty: ".. session.members[ otherparticipant.attributes.RefId ].name .. " +" .. penaltyPoints.." pts")
 
 					if playerPoints[ otherparticipantid ] >= pointsKick then
-						penalty_sendChatToAll("KICK ".. session.members[ otherparticipant.attributes.RefId ].name ..", in "..kickDelay.."s")
+						penalty_sendChatToMember(otherparticipant.attributes.RefId, "KICK ".. session.members[ otherparticipant.attributes.RefId ].name ..", in "..kickDelay.."s")
 						to_kick [ otherparticipant.attributes.RefId ] =  now + (kickDelay*1000)
 					elseif  playerPoints[ otherparticipantid ] >= pointsWarn then
-						penalty_sendChatToAll("WARN ".. session.members[ otherparticipant.attributes.RefId ].name .. " " .. playerPoints[ otherparticipantid ].."pts /"..pointsKick)
+						penalty_sendChatToMember(otherparticipant.attributes.RefId, "WARN ".. session.members[ otherparticipant.attributes.RefId ].name .. " " .. playerPoints[ otherparticipantid ].."pts /"..pointsKick)
 					end
 				end
 			end
