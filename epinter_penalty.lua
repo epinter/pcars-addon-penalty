@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local VERSION='0.8.0'
+local VERSION='0.9.0'
 
 local addon_storage = ...
 local config = addon_storage.config
