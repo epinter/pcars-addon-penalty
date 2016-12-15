@@ -54,7 +54,9 @@ local tempBanTime = config.tempBanTime
 if type( config.whitelist ) ~= "table" then config.whitelist = {} end
 
 local function penalty_log( msg )
-	print(logPrefix .. msg)
+	local date = os.date("[%Y-%m-%d %H:%M:%S] ")
+	local priority = "INFO: "
+	print(date..priority..logPrefix .. msg)
 end
 
 local function penalty_sendChatToAll( msg )
