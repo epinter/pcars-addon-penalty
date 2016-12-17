@@ -36,7 +36,10 @@ local scheduled_sends_motd = {}
 local penaltyDelay = 3
 local kickDelay = 3
 local raceStartDelay = 4
-local logPrefix="PENALTYADDON: "
+local logTag="PENALTYADDON: "
+local logPrioDebug = "DEBUG"
+local logPrioInfo = "INFO"
+local logPrioError = "ERROR"
 
 local enableRaceStartPenalty = config.enableRaceStartPenalty
 local enableCutTrackPenalty = config.enableCutTrackPenalty
@@ -53,10 +56,29 @@ local tempBanTime = config.tempBanTime
 
 if type( config.whitelist ) ~= "table" then config.whitelist = {} end
 
-local function penalty_log( msg )
-	local date = os.date("[%Y-%m-%d %H:%M:%S] ")
-	local priority = "INFO: "
-	print(date..priority..logPrefix .. msg)
+local function penalty_getlogprefix(priority)
+	return (os.date("[%Y-%m-%d %H:%M:%S] ")..(priority..": ")..logTag)
+end
+
+local function penalty_log( msg, priority )
+	if not priority or string.len(priority) == 0 then
+		priority = logPrioInfo
+	end
+	if (config.debug == 1 and priority == logPrioDebug) or priority ~= logPrioDebug then
+		print(penalty_getlogprefix(priority)..msg)
+	end
+end
+
+local function penalty_dump( table, logpriority )
+	if table == nil then
+		return
+	end
+	if not logpriority or string.len(logpriority) == 0 then
+		logpriority = logPrioDebug
+	end
+	if (config.debug == 1 and logpriority == logPrioDebug) or logpriority ~= logPrioDebug then
+		dump(table, penalty_getlogprefix(logpriority).."    ")
+	end
 end
 
 local function penalty_sendChatToAll( msg )
@@ -79,7 +101,7 @@ local function penalty_isSteamUserWhitelisted ( steamId )
 end
 
 if enableRaceStartPenalty == nil or enableCutTrackPenalty == nil or not tempBanTime or not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
-	penalty_log("Invalid config, addon disabled")
+	penalty_log("Invalid config, addon disabled", logPrioError)
 end
 
 local function penalty_send_motd_to( refid )
@@ -119,7 +141,7 @@ end
 local function penalty_remember_event_offset()
 	local log_info = GetEventLogInfo()
 	first_event_offset = log_info.first + log_info.count - 1
-	penalty_log( "Session created, first log event index = " .. first_event_offset )
+	penalty_log( "Session created, first log event index = " .. first_event_offset,logPrioDebug )
 end
 
 local function penalty_log_events()
@@ -127,7 +149,7 @@ local function penalty_log_events()
 	local log = GetEventLogRange( first_event_offset )
 	for _,event in ipairs( log.events ) do
 		penalty_log( "Event: " )
-		dump( event, "  " )
+		penalty_dump( event )
 	end
 	first_event_offset = log.first + log.count
 end
@@ -166,9 +188,7 @@ local function callback_penalty( callback, ... )
 		if event.type == "Participant" and event.name == "Lap" then
 			participantid = event.participantid
 			participant = session.participants[ participantid ]
-			if config.debug == 1 then
-				penalty_log( "**** Participant " .. session.members[ participant.attributes.RefId ].name .. " (" .. participantid .. ") lap:" )
-			end
+			penalty_log( "**** Participant " .. session.members[ participant.attributes.RefId ].name .. " (" .. participantid .. ") lap:", logPrioDebug)
 			if participant.attributes.RacePosition then
 				local participantPos = participant.attributes.RacePosition
 				if playerPoints[ participantid ] and playerPoints[ participantid ] > 0 then
@@ -182,30 +202,29 @@ local function callback_penalty( callback, ... )
 				end
 			end
 
-			if config.debug == 1 then
-				dump( event.attributes )
-				penalty_log("************************")
-			end
+			penalty_dump( event.attributes )
+			penalty_log("************************", logPrioDebug)
 		end
 		-- Participant cutTrackEnd
 		if event.type == "Participant" and event.name == "CutTrackEnd" and (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race" then
-			if not playerPoints[ participantid ] then
-				playerPoints[ participantid ] = 0
-			end
 			if event.attributes.PlaceGain > 0 and enableCutTrackPenalty == 1 then
+				penalty_log("CutTrackEnd ".. session.members[ participant.attributes.RefId ].name, logPrioDebug)
+				penalty_dump(event)	
+				if not playerPoints[ participantid ] then
+					playerPoints[ participantid ] = 0
+				end
 				playerPoints[ participantid ] = playerPoints[ participantid ] + pointsPerCut
 				penalty_sendChatToAll("Penalty: ".. session.members[ participant.attributes.RefId ].name .. " +" .. pointsPerCut.." pts")
 			end
-		
 		end
 
 		-- Participant impact
 		if event.type == "Participant" and event.name == "Impact" and (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race" then
 			local now = GetServerUptimeMs()
-			if config.debug == 1 then
-				penalty_log("***** Impact Event *****")
-				dump( event )
-			end
+
+			penalty_log("***** Impact Event *****", logPrioDebug)
+			penalty_dump( event )
+
 			delay = GetServerUptimeMs() - (penaltyDelay * 1000)
 			participantid = event.participantid
 			otherparticipantid = event.attributes.OtherParticipantId
@@ -219,9 +238,7 @@ local function callback_penalty( callback, ... )
 					playerPoints[ otherparticipantid ] = 0
 				end
 
-				if config.debug == 1 then
-					penalty_log( "Participant " .. session.members[ participant.attributes.RefId ].name .. " (" .. participantid .. ") impact:" )
-				end
+				penalty_log( "Participant " .. session.members[ participant.attributes.RefId ].name .. " (" .. participantid .. ") impact:" , logPrioDebug)
 
 				local participantPos
 				local otherParticipantPos
@@ -317,11 +334,9 @@ local function callback_penalty( callback, ... )
 					end
 				end
 			end
-			if config.debug == 1 then
-				dump(participant)
-				dump(otherparticipant)
-				penalty_log("************************")
-			end
+			penalty_dump(participant)
+			penalty_dump(otherparticipant)
+			penalty_log("************************", logPrioDebug)
 		end
 	end
 
@@ -332,7 +347,7 @@ local function callback_penalty( callback, ... )
 		elseif ( event.type == "Session" ) and ( event.name == "SessionDestroyed" ) then
 			penalty_log_events()
 		elseif ( event.type == "Session" ) and ( event.name == "StateChanged" ) then
-			penalty_log( "Session state changed from " .. event.attributes.PreviousState .. " to " .. event.attributes.NewState )
+			penalty_log( "Session state changed from " .. event.attributes.PreviousState .. " to " .. event.attributes.NewState, logPrioDebug )
 			if ( event.attributes.PreviousState ~= "None" ) and ( event.attributes.NewState == "Lobby" ) then
 				penalty_send_motd_to()
 			end
@@ -347,8 +362,9 @@ local function callback_penalty( callback, ... )
 
 	if callback == Callback.ServerStateChanged then
 		local oldState, newState = ...
-		penalty_log( "Server state changed from " .. oldState .. " to " .. newState )
-		if newState == "Running" then
+		penalty_log( "Server state changed from " .. oldState .. " to " .. newState, logPrioDebug )
+		penalty_dump(server)
+		if oldState == "Starting" and newState == "Running" then
 			penalty_log("Penalty addon config loaded:")
 			penalty_log("  pointsPerHit = " .. pointsPerHit)
 			penalty_log("  pointsPerCut = " .. pointsPerCut)
@@ -370,7 +386,7 @@ local function callback_penalty( callback, ... )
 		end
 	elseif callback == Callback.SessionManagerStateChanged then
 		local oldState, newState = ...
-		penalty_log( "Session manager state changed from " .. oldState .. " to " .. newState )
+		penalty_log( "Session manager state changed from " .. oldState .. " to " .. newState, logPrioDebug )
 	elseif callback == Callback.MemberStateChanged then
 		local refid, _, new_state = ...
 		if new_state == "Connected" then
