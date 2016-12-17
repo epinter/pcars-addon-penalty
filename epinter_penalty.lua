@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local VERSION='0.9.2'
+local VERSION='0.9.3'
 
 local addon_storage = ...
 local config = addon_storage.config
@@ -117,23 +117,18 @@ end
 
 local function penalty_send_motd_now( refid )
 	SendChatToMember(refid,"")
-	SendChatToMember(refid,"*** Penalty addon, BETA version "..VERSION.." by EPinter ***")
-	SendChatToMember(refid,"*** https://github.com/epinter/pcars-addon-penalty ***")
-	SendChatToMember(refid,"Penalty Points: ")
-	SendChatToMember(refid,"  Each impact: +"..pointsPerHit.."pts")
+	SendChatToMember(refid,"*** Penalty addon, BETA version "..VERSION.." by EPinter * https://github.com/epinter/pcars-addon-penalty ***")
+	SendChatToMember(refid,"  Each impact: +"..pointsPerHit.." points")
 	if enableCutTrackPenalty == 1 then
-		SendChatToMember(refid,"  Cutting track: +"..pointsPerCut.."pts")
+		SendChatToMember(refid,"  Cutting track: +"..pointsPerCut.." points")
 	end
 	if enableRaceStartPenalty == 1 then
-		SendChatToMember(refid,"  First impact on race start: +"..(pointsPerHit * 2).."pts")
+		SendChatToMember(refid,"  First impact on race start: +"..(pointsPerHit * 2).." points")
 	end
-	SendChatToMember(refid,"  Each clean lap: -"..pointsPerLapClean.."pts")
-	SendChatToMember(refid,"  Each lap as P1: -"..pointsPerLapLead.."pts")
-	SendChatToMember(refid,"Warning: "..pointsWarn.."pts")
-	SendChatToMember(refid,"Kick: "..pointsKick.."pts")
-	SendChatToMember(refid,"")
-	SendChatToMember(refid,"*** Penalty points are earned every time you hit other players ***")
-	SendChatToMember(refid,"*** Clean laps reduces penalty points, each lap in P1 too. ***")
+	SendChatToMember(refid,"  Each clean lap: -"..pointsPerLapClean.." points")
+	SendChatToMember(refid,"  Each lap as P1: -"..pointsPerLapLead.." points")
+	SendChatToMember(refid,"*** WARNING at "..pointsWarn.."pts and KICK at "..pointsKick.."pts")
+	SendChatToMember(refid,"*** Penalty points are earned every time you hit other players, clean laps reduces your penalty ***")
 	SendChatToMember(refid,"")
 end
 
