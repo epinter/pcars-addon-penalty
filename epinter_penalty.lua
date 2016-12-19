@@ -32,6 +32,7 @@ local lastAccident = {}
 local lastPenaltyTime = {}
 local lastPenaltyLap = {}
 local playerPoints = {}
+local cutTrackStartRacePos = {}
 local scheduled_sends_motd = {}
 local penaltyDelay = 3
 local kickDelay = 3
@@ -180,9 +181,13 @@ local function callback_penalty( callback, ... )
 
 	if callback == Callback.EventLogged then
 		local event = ...
-		if event.type == "Participant" and event.name == "Lap" then
+		local participantid
+		local participant
+		if event.type == "Participant" then
 			participantid = event.participantid
 			participant = session.participants[ participantid ]
+		end
+		if event.type == "Participant" and event.name == "Lap" then
 			penalty_log( "**** Participant " .. session.members[ participant.attributes.RefId ].name .. " (" .. participantid .. ") lap:", logPrioDebug)
 			if participant.attributes.RacePosition then
 				local participantPos = participant.attributes.RacePosition
@@ -200,11 +205,19 @@ local function callback_penalty( callback, ... )
 			penalty_dump( event.attributes )
 			penalty_log("************************", logPrioDebug)
 		end
+		if event.type == "Participant" and event.name == "CutTrackStart" and (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race" then
+			if enableCutTrackPenalty == 1 then
+				cutTrackStartRacePos[participantid] = participant.attributes.RacePosition
+				penalty_log("CutTrackStart ".. session.members[participant.attributes.RefId ].name..": Lap "..event.attributes.Lap..", RacePosition "..participant.attributes.RacePosition, logPrioDebug)
+				penalty_dump(event)
+			end
+		end
 		-- Participant cutTrackEnd
 		if event.type == "Participant" and event.name == "CutTrackEnd" and (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race" then
-			if event.attributes.PlaceGain > 0 and enableCutTrackPenalty == 1 then
-				penalty_log("CutTrackEnd ".. session.members[ participant.attributes.RefId ].name, logPrioDebug)
-				penalty_dump(event)	
+			if enableCutTrackPenalty == 1 and cutTrackStartRacePos[participantid] and participant.attributes.RacePosition < cutTrackStartRacePos[participantid] then
+				penalty_log("CutTrackEnd ".. session.members[ participant.attributes.RefId ].name..", RacePosition "..participant.attributes.RacePosition, logPrioDebug)
+				penalty_dump(event)
+				cutTrackStartRacePos[participantid] = nil
 				if not playerPoints[ participantid ] then
 					playerPoints[ participantid ] = 0
 				end
