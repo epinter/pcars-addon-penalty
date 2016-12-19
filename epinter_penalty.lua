@@ -141,10 +141,10 @@ local function penalty_remember_event_offset()
 end
 
 local function penalty_log_events()
-	penalty_log( "Dumping log for session, starting at " .. first_event_offset )
+	penalty_log( "Dumping log for session, starting at " .. first_event_offset, logPrioDebug )
 	local log = GetEventLogRange( first_event_offset )
 	for _,event in ipairs( log.events ) do
-		penalty_log( "Event: " )
+		penalty_log( "Event: ",logPrioDebug )
 		penalty_dump( event )
 	end
 	first_event_offset = log.first + log.count
@@ -353,7 +353,9 @@ local function callback_penalty( callback, ... )
 		if ( event.type == "Session" ) and ( event.name == "SessionCreated" ) then
 			penalty_remember_event_offset()
 		elseif ( event.type == "Session" ) and ( event.name == "SessionDestroyed" ) then
-			penalty_log_events()
+			if config.debug == 1 then
+				penalty_log_events()
+			end
 		elseif ( event.type == "Session" ) and ( event.name == "StateChanged" ) then
 			penalty_log( "Session state changed from " .. event.attributes.PreviousState .. " to " .. event.attributes.NewState, logPrioDebug )
 			if ( event.attributes.PreviousState ~= "None" ) and ( event.attributes.NewState == "Lobby" ) then
