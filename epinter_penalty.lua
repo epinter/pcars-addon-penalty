@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local VERSION='0.9.3'
+local VERSION='0.9.6'
 
 local addon_storage = ...
 local config = addon_storage.config
@@ -375,7 +375,7 @@ local function callback_penalty( callback, ... )
 		penalty_log( "Server state changed from " .. oldState .. " to " .. newState, logPrioDebug )
 		penalty_dump(server)
 		if oldState == "Starting" and newState == "Running" then
-			penalty_log("Penalty addon config loaded:")
+			penalty_log("Penalty addon v"..VERSION..", config loaded:")
 			penalty_log("  pointsPerHit = " .. pointsPerHit)
 			penalty_log("  pointsPerCut = " .. pointsPerCut)
 			penalty_log("  pointsPerHitHost = " .. pointsPerHitHost)
