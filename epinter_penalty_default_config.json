@@ -27,7 +27,7 @@ config : {
 	pointsPerHit: 12
 
 	//Number of points the host will receive when he hit others
-	pointsPerHitHost: 4
+	pointsPerHitHost: 6
 
 	//Number of points the player will receive when he gain a position while cutting track
 	pointsPerCut: 8
