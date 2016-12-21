@@ -13,15 +13,15 @@ The idea behind this addon is not kick every player that crashes during a race, 
 
 * Every player starts with 0 penalty points. These points are increased when an impact happens. The car with the greater race position will receive the penalty, this means if you are in 9th and when you try to overtake the 8th and a collision happens, you will be considered the culprit and receive the penalty points.
 
-* The points are given to a player every time an impact happens if the last impact was more than 3 seconds before. The host of the session receives different number of points.
+* The points are given to a player every time an impact happens if the last impact was more than 3 seconds before. The host of the session receives a different number of points.
 
 * When a player cuts track, he will receive penalty points if gained position while off-track.
 
 * During the first 4 seconds of the race start, the first player to crash will receive penalty points doubled.
 
-* On every clean lap (without impact) completed, the player will have a number of points reduced from its penalty.
+* On every clean lap (without impact) completed, the player will have its accumulated penalty points reduced.
 
-* On every lap completed as leader, the player will have a number of points reduced from its penalty.
+* On every lap completed as P1, the player will have its accumulated penalty points reduced.
 
 The server will send messages in chat with information about penalty points given, and a warning (WARN) when the player reaches the number of points configured. When the player reaches the points to be kicked, server will do it using a temp-ban (configurable time).
 
@@ -34,7 +34,7 @@ Default configuration
 The configuration is stored in **lua_config/epinter_penalty_config.json** (the file is auto generated when server starts first time with addon enabled). By default, the penalty system is configured with this parameters:
 
 * Each impact:  +12 points
-* Each impact by the host of the session:  +4 points
+* Each impact by the host of the session:  +6 points
 * Cutting track:  +8 points
 * First impact on race start:  +24 points
 * Each clean lap completed:  -4 points
@@ -94,12 +94,12 @@ luaApiAddons : [
     "epinter_penalty",
 ]
 ```
-The sms_base, sms_rotate,sms_motd and sms_stats are enabled by default, the line added to **luaApiAddons** is **"epinter_penalty",**
+The sms_base, sms_rotate,sms_motd and sms_stats are there by default, the line added to **luaApiAddons** is **"epinter_penalty",**
 
 Limitations
 ----------
 
-The addon receives events from the game using callbacks. These events have some information that permits us to store the points in memory and take an action when the player reaches a critical level of points. The only action the dedicated server has available is the KickMember. We use KickMember with a temp-ban parameter. There's no way to, for example, return a player to pit, reduce it's speed or apply a time penalty as the game does with a player cuts the track.
+The addon receives events from the game using callbacks. These events have some information that permits us to store the points in memory and take an action when the player reaches a critical level of points. The only action the dedicated server has available is the KickMember. The KickMember is used here with a temp-ban parameter. There's no way to, for example, return a player to pit, reduce it's speed or apply a time penalty as the game does with a player cuts the track.
 
 Known Issue
 ----------
