@@ -294,7 +294,7 @@ local function callback_penalty( callback, ... )
 					penalty_sendChatToAll("Penalty: ".. session.members[ participant.attributes.RefId ].name .. " +" .. penaltyPoints.." pts")
 
 					if playerPoints[ participantid ] >= pointsKick then
-						penalty_sendChatToMember(participant.attributes.RefId, "KICK ".. session.members[ participant.attributes.RefId ].name ..", in "..kickDelay.."s")
+						penalty_sendChatToAll(participant.attributes.RefId, "Penalty KICK ".. session.members[ participant.attributes.RefId ].name ..", in "..kickDelay.."s")
 						to_kick [ participant.attributes.RefId ] =  now + (kickDelay*1000)
 					elseif  playerPoints[ participantid ] >= pointsWarn then
 						penalty_sendChatToMember(participant.attributes.RefId, "WARN ".. session.members[ participant.attributes.RefId ].name .. " " .. playerPoints[ participantid ].."pts /"..pointsKick)
