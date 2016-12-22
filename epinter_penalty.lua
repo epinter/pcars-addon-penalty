@@ -102,7 +102,7 @@ local function penalty_isSteamUserWhitelisted ( steamId )
 end
 
 if enableRaceStartPenalty == nil or enableCutTrackPenalty == nil or not tempBanTime or not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
-	penalty_log("Invalid config, addon disabled", logPrioError)
+	penalty_log("Invalid config, addon disabled. Remove or fix the config file (in lua_config directory).", logPrioError)
 end
 
 local function penalty_send_motd_to( refid )
