@@ -53,8 +53,9 @@ config : {
 	//When 1, the player will be penalized when he cuts track and gain position while offtrack
 	enableCutTrackPenalty: 1
 
-	//Time in seconds to keep a player banned after kick
-	tempBanTime: 60
+	//Time in seconds to keep a player banned after kick.
+	//10 minutes is recommended, the server seems to ignore something like 1 or 2 minutes.
+	tempBanTime: 600
 
 	//The whitelist should contain the steamid (like 7656XXXXXXXXXXXXX) of the player who will never receive penalty points
 	//The numbers should be inside brackets separated by comma:

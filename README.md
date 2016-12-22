@@ -59,7 +59,7 @@ The configuration is stored in **lua_config/epinter_penalty_config.json** (the f
 >        
 >//Time in seconds to keep a player banned after kick
 >
->    tempBanTime: 60  
+>    tempBanTime: 600  
 >```
 
 Installation
