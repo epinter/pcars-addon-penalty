@@ -28,10 +28,8 @@ local VERSION=string.format("%d.%d.%d",major,minor,revision)
 local addon_storage = ...
 local config = addon_storage.config
 
-local first_event_offset = 0
 local to_kick = {}
 local lastAccident = {}
-local lastPenaltyTime = {}
 local lastPenaltyLap = {}
 local playerPoints = {}
 local cutTrackStartRacePos = {}
@@ -135,23 +133,6 @@ local function penalty_send_motd_now( refid )
 	SendChatToMember(refid,"")
 end
 
-
-local function penalty_remember_event_offset()
-	local log_info = GetEventLogInfo()
-	first_event_offset = log_info.first + log_info.count - 1
-	penalty_log( "Session created, first log event index = " .. first_event_offset,logPrioDebug )
-end
-
-local function penalty_log_events()
-	penalty_log( "Dumping log for session, starting at " .. first_event_offset, logPrioDebug )
-	local log = GetEventLogRange( first_event_offset )
-	for _,event in ipairs( log.events ) do
-		penalty_log( "Event: ",logPrioDebug )
-		penalty_dump( event )
-	end
-	first_event_offset = log.first + log.count
-end
-
 local function penalty_tick()
 	local now = GetServerUptimeMs()
 	for refId, time in pairs( to_kick ) do
@@ -185,10 +166,24 @@ local function callback_penalty( callback, ... )
 		local event = ...
 		local participantid
 		local participant
+
+		if ( event.type == "Session" ) and ( event.name == "StateChanged" ) then
+			penalty_log( "Session state changed from " .. event.attributes.PreviousState .. " to " .. event.attributes.NewState, logPrioDebug )
+			if ( event.attributes.PreviousState ~= "None" ) and ( event.attributes.NewState == "Lobby" ) then
+				penalty_send_motd_to()
+			end
+			if ( event.attributes.PreviousState ~= "None" ) and ( event.attributes.NewState == "Race" ) then
+				lastAccident = {}
+				lastPenaltyLap = {}
+				playerPoints = {}
+			end
+		end
+
 		if event.type == "Participant" then
 			participantid = event.participantid
 			participant = session.participants[ participantid ]
 		end
+
 		if event.type == "Participant" and event.name == "Lap" then
 			penalty_log( "**** Participant " .. session.members[ participant.attributes.RefId ].name .. " (" .. participantid .. ") lap:", logPrioDebug)
 			if participant.attributes.RacePosition then
@@ -278,7 +273,6 @@ local function callback_penalty( callback, ... )
 					end
 					lastAccident[ participantid ] = now
 					lastAccident[ otherparticipantid ] = now
-					lastPenaltyTime[ participantid ] = now
 					lastPenaltyLap[ participantid ] = participant.attributes.CurrentLap
 
 					local penaltyPoints = 0
@@ -319,7 +313,6 @@ local function callback_penalty( callback, ... )
 					end
 					lastAccident[ otherparticipantid ] = now
 					lastAccident[ participantid ] = now
-					lastPenaltyTime[ otherparticipantid ] = now
 					lastPenaltyLap[ otherparticipantid ] = participant.attributes.CurrentLap
 
 					local penaltyPoints = 0
@@ -350,28 +343,6 @@ local function callback_penalty( callback, ... )
 		end
 	end
 
-	if callback == Callback.EventLogged then
-		local event = ...
-		if ( event.type == "Session" ) and ( event.name == "SessionCreated" ) then
-			penalty_remember_event_offset()
-		elseif ( event.type == "Session" ) and ( event.name == "SessionDestroyed" ) then
-			if config.debug == 1 then
-				penalty_log_events()
-			end
-		elseif ( event.type == "Session" ) and ( event.name == "StateChanged" ) then
-			penalty_log( "Session state changed from " .. event.attributes.PreviousState .. " to " .. event.attributes.NewState, logPrioDebug )
-			if ( event.attributes.PreviousState ~= "None" ) and ( event.attributes.NewState == "Lobby" ) then
-				penalty_send_motd_to()
-			end
-			if ( event.attributes.PreviousState ~= "None" ) and ( event.attributes.NewState == "Race" ) then
-				lastAccident = {}
-				lastPenaltyTime = {}
-				lastPenaltyLap = {}
-				playerPoints = {}
-			end
-		end
-	end
-
 	if callback == Callback.ServerStateChanged then
 		local oldState, newState = ...
 		penalty_log( "Server state changed from " .. oldState .. " to " .. newState, logPrioDebug )
@@ -396,9 +367,6 @@ local function callback_penalty( callback, ... )
 				penalty_log("  steamid whitelisted: "..v)
 			end
 		end
-	elseif callback == Callback.SessionManagerStateChanged then
-		local oldState, newState = ...
-		penalty_log( "Session manager state changed from " .. oldState .. " to " .. newState, logPrioDebug )
 	elseif callback == Callback.MemberStateChanged then
 		local refid, _, new_state = ...
 		if new_state == "Connected" then
@@ -407,13 +375,11 @@ local function callback_penalty( callback, ... )
 	elseif callback == Callback.ParticipantCreated then
 		local participantId = ...
 		lastAccident[ participantId ] = nil
-		lastPenaltyTime[ participantId ] = nil
 		lastPenaltyLap[ participantId ] = nil
 		playerPoints[ participantId ] = nil
 	elseif callback == Callback.ParticipantRemoved then
 		local participantId = ...
 		lastAccident[ participantId ] = nil
-		lastPenaltyTime[ participantId ] = nil
 		lastPenaltyLap[ participantId ] = nil
 		playerPoints[ participantId ] = nil
 	end
@@ -422,16 +388,8 @@ end
 RegisterCallback( callback_penalty )
 EnableCallback( Callback.Tick )
 EnableCallback( Callback.ServerStateChanged )
-EnableCallback( Callback.SessionManagerStateChanged )
-EnableCallback( Callback.SessionAttributesChanged )
-EnableCallback( Callback.NextSessionAttributesChanged )
-EnableCallback( Callback.MemberJoined )
 EnableCallback( Callback.MemberStateChanged )
-EnableCallback( Callback.MemberAttributesChanged )
-EnableCallback( Callback.HostMigrated )
-EnableCallback( Callback.MemberLeft )
 EnableCallback( Callback.ParticipantCreated )
-EnableCallback( Callback.ParticipantAttributesChanged )
 EnableCallback( Callback.ParticipantRemoved )
 EnableCallback( Callback.EventLogged )
 
