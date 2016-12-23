@@ -21,7 +21,9 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local VERSION='0.9.8'
+local revision=8
+local major,minor=GetAddonVersion()
+local VERSION=string.format("%d.%d.%d",major,minor,revision)
 
 local addon_storage = ...
 local config = addon_storage.config
@@ -118,7 +120,7 @@ end
 
 local function penalty_send_motd_now( refid )
 	SendChatToMember(refid,"")
-	SendChatToMember(refid,"*** Penalty addon, BETA version "..VERSION.." by EPinter * https://github.com/epinter/pcars-addon-penalty ***")
+	SendChatToMember(refid,"*** Penalty addon, version "..VERSION.." by EPinter * https://github.com/epinter/pcars-addon-penalty ***")
 	SendChatToMember(refid,"  Each impact: +"..pointsPerHit.." points")
 	if enableCutTrackPenalty == 1 then
 		SendChatToMember(refid,"  Cutting track: +"..pointsPerCut.." points")
