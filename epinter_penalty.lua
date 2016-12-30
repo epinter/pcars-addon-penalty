@@ -245,9 +245,8 @@ local function handler_penalty_participant_impact(event)
 				if next(lastAccident) == nil
 						and enableRaceStartPenalty == 1
 						and session.attributes.SessionStage == "Race1"
-						and participant.attributes.Sector1Time <= (raceStartDelay * 1000)
-						and participant.attributes.Sector2Time == 0
-						and participant.attributes.Sector3Time == 0
+						and (	(participant.attributes.Sector1Time <= (raceStartDelay * 1000) and participant.attributes.Sector2Time == 0 and participant.attributes.Sector3Time == 0) or
+							(participant.attributes.Sector3Time <= (raceStartDelay * 1000) and participant.attributes.Sector2Time == 0 and participant.attributes.Sector1Time == 0) )
 						and participant.attributes.CurrentLap == 1 then
 					firstCrash = 1
 				end
@@ -285,9 +284,8 @@ local function handler_penalty_participant_impact(event)
 				if next(lastAccident) == nil
 						and enableRaceStartPenalty == 1
 						and session.attributes.SessionStage == "Race1"
-						and otherparticipant.attributes.Sector1Time <= (raceStartDelay * 1000)
-						and otherparticipant.attributes.Sector2Time == 0
-						and otherparticipant.attributes.Sector3Time == 0
+						and (	(otherparticipant.attributes.Sector1Time <= (raceStartDelay * 1000) and otherparticipant.attributes.Sector2Time == 0 and otherparticipant.attributes.Sector3Time == 0) or
+							(otherparticipant.attributes.Sector3Time <= (raceStartDelay * 1000) and otherparticipant.attributes.Sector2Time == 0 and otherparticipant.attributes.Sector1Time == 0) )
 						and otherparticipant.attributes.CurrentLap == 1 then
 					firstCrash = 1
 				end
