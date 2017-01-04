@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local revision=8
+local revision=0
 local major,minor=GetAddonVersion()
 local VERSION=string.format("%d.%d.%d",major,minor,revision)
 

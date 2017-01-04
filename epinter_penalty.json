@@ -19,7 +19,7 @@
 //    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 // Addon version. Used only as informational value.
-version : [ 0, 9 ]
+version : [ 1, 0 ]
 
 // Addon description. Used only as informational value.
 description : "Penalty Addon for Project Cars Dedicated Server"
