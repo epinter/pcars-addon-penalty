@@ -179,7 +179,7 @@ end
 local function handler_penalty_participant_cuttrackstart(event)
 	local participantid = event.participantid
 	local participant = session.participants[ participantid ]
-	if enableCutTrackPenalty == 1 and (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race" then
+	if enableCutTrackPenalty == 1 and session.attributes.SessionStage == "Race1" and session.attributes.SessionState == "Race" then
 		cutTrackStartRacePos[participantid] = participant.attributes.RacePosition
 		penalty_log("CutTrackStart ".. session.members[participant.attributes.RefId ].name..": Lap "..event.attributes.Lap..", RacePosition "..participant.attributes.RacePosition, logPrioDebug)
 		penalty_dump(event)
@@ -190,7 +190,7 @@ local function handler_penalty_participant_cuttrackend(event)
 	local participantid = event.participantid
 	local participant = session.participants[ participantid ]
 	if enableCutTrackPenalty == 1
-			and (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race"
+			and session.attributes.SessionStage == "Race1" and session.attributes.SessionState == "Race"
 			and cutTrackStartRacePos[participantid] and participant.attributes.RacePosition < cutTrackStartRacePos[participantid] then
 		penalty_log("CutTrackEnd ".. session.members[ participant.attributes.RefId ].name..", RacePosition "..participant.attributes.RacePosition, logPrioDebug)
 		penalty_dump(event)
@@ -208,7 +208,7 @@ local function handler_penalty_participant_impact(event)
 	local participant = session.participants[ participantid ]
 	local otherparticipantid = event.attributes.OtherParticipantId
 	local otherparticipant = session.participants[ otherparticipantid ]
-	if (raceOnly==1 and session.attributes.SessionStage == "Race1") and session.attributes.SessionState == "Race" then
+	if ((raceOnly==1 and session.attributes.SessionStage == "Race1") or raceOnly==0) and session.attributes.SessionState == "Race" then
 		local now = GetServerUptimeMs()
 
 		penalty_log("***** Impact Event *****", logPrioDebug)
