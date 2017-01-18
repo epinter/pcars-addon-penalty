@@ -47,6 +47,11 @@ config : {
 	//When 1, the penalty system will only work during the race, not practices or qualify
 	raceOnly: 1
 
+	// Minimum collision magnitude to trigger the penalty system.
+	// Any impact below this number will be ignored. The game reports values between 300 and 1000.
+	// All impacts are penalized by default.
+	minCollisionMagnitude: 0
+
 	//When 1, the first player to crash during race start will be penalized with 'pointsPerHit x 2'
 	enableRaceStartPenalty: 1
 

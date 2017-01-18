@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local revision=0
+local revision=1
 local major,minor=GetAddonVersion()
 local VERSION=string.format("%d.%d.%d",major,minor,revision)
 
@@ -53,6 +53,7 @@ local pointsPerHitHost = config.pointsPerHitHost
 local raceOnly = config.raceOnly
 local tempBanTime = config.tempBanTime
 local raceStartDelay = config.raceStartDelay
+local minCollisionMagnitude = config.minCollisionMagnitude
 
 local function penalty_getlogprefix(priority)
 	return (os.date("[%Y-%m-%d %H:%M:%S] ")..(priority..": ")..logTag)
@@ -208,6 +209,7 @@ local function handler_penalty_participant_impact(event)
 	local participant = session.participants[ participantid ]
 	local otherparticipantid = event.attributes.OtherParticipantId
 	local otherparticipant = session.participants[ otherparticipantid ]
+	local collisionmagnitude = event.attributes.CollisionMagnitude
 	if ((raceOnly==1 and session.attributes.SessionStage == "Race1") or raceOnly==0) and session.attributes.SessionState == "Race" then
 		local now = GetServerUptimeMs()
 
@@ -240,7 +242,8 @@ local function handler_penalty_participant_impact(event)
 			if ( not lastAccident[ participantid ]
 					or ( lastAccident [ participantid ] and lastAccident [ participantid ] < delay )
 					) and participantPos > otherParticipantPos
-					and participant.attributes.CurrentLap <= session.attributes.Race1Length then
+					and participant.attributes.CurrentLap <= session.attributes.Race1Length 
+					and collisionmagnitude >= minCollisionMagnitude then
 				local next = next
 				if next(lastAccident) == nil
 						and enableRaceStartPenalty == 1
@@ -278,7 +281,8 @@ local function handler_penalty_participant_impact(event)
 			if ( not lastAccident[ otherparticipantid ]
 					or ( lastAccident [ otherparticipantid ] and lastAccident [ otherparticipantid ] < delay )
 					) and otherParticipantPos > participantPos 
-					and otherparticipant.attributes.CurrentLap <= session.attributes.Race1Length then
+					and otherparticipant.attributes.CurrentLap <= session.attributes.Race1Length
+					and collisionmagnitude >= minCollisionMagnitude then
 				local next = next
 				local firstCrash = 0
 				if next(lastAccident) == nil
@@ -340,6 +344,7 @@ local function handler_penalty_serverstatechanged(oldState,newState)
 		penalty_log("  enableRaceStartPenalty = " .. enableRaceStartPenalty)
 		penalty_log("  enableCutTrackPenalty = " .. enableCutTrackPenalty)
 		penalty_log("  tempBanTime = " .. tempBanTime)
+		penalty_log("  minCollisionMagnitude = " .. minCollisionMagnitude)
 		penalty_log("  debug = " .. config.debug)
 		for k,v in pairs ( config.whitelist ) do
 			penalty_log("  steamid whitelisted: "..v)
@@ -373,7 +378,7 @@ local function callback_penalty( callback, ... )
 		return
 	end
 
-	if not tempBanTime or not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
+	if not raceStartDelay or not minCollisionMagnitude or not tempBanTime or not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
 		do return end
 	end
 
@@ -409,7 +414,7 @@ end
 
 if type( config.whitelist ) ~= "table" then config.whitelist = {} end
 
-if enableRaceStartPenalty == nil or enableCutTrackPenalty == nil or not tempBanTime or not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
+if enableRaceStartPenalty == nil or enableCutTrackPenalty == nil or not raceStartDelay or not minCollisionMagnitude or not tempBanTime or not pointsPerHit or not pointsPerHitHost or not pointsPerCut or not pointsPerLapLead or not pointsPerLapClean or not pointsWarn or not pointsKick or not raceOnly then
 	penalty_log("Invalid config, addon disabled. Remove or fix the config file (in lua_config directory).", logPrioError)
 end
 
