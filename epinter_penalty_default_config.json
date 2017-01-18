@@ -19,7 +19,7 @@
 //    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 // Config version
-version : 1
+version : 2
 
 // Default configuration
 config : {
@@ -49,6 +49,9 @@ config : {
 
 	//When 1, the first player to crash during race start will be penalized with 'pointsPerHit x 2'
 	enableRaceStartPenalty: 1
+
+	// Time range in seconds when the race-start-penalty will be applied
+	raceStartDelay: 4
 
 	//When 1, the player will be penalized when he cuts track and gain position while offtrack
 	enableCutTrackPenalty: 1

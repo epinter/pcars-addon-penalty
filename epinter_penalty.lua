@@ -36,7 +36,6 @@ local cutTrackStartRacePos = {}
 local scheduled_sends_motd = {}
 local penaltyDelay = 3
 local kickDelay = 3
-local raceStartDelay = 4
 local logTag="PENALTYADDON: "
 local logPrioDebug = "DEBUG"
 local logPrioInfo = "INFO"
@@ -53,6 +52,7 @@ local pointsKick = config.pointsKick
 local pointsPerHitHost = config.pointsPerHitHost
 local raceOnly = config.raceOnly
 local tempBanTime = config.tempBanTime
+local raceStartDelay = config.raceStartDelay
 
 local function penalty_getlogprefix(priority)
 	return (os.date("[%Y-%m-%d %H:%M:%S] ")..(priority..": ")..logTag)
@@ -336,6 +336,7 @@ local function handler_penalty_serverstatechanged(oldState,newState)
 		penalty_log("  penaltyDelay = " .. penaltyDelay)
 		penalty_log("  kickDelay = " .. kickDelay)
 		penalty_log("  raceOnly = " .. raceOnly)
+		penalty_log("  raceStartDelay = " .. raceStartDelay)
 		penalty_log("  enableRaceStartPenalty = " .. enableRaceStartPenalty)
 		penalty_log("  enableCutTrackPenalty = " .. enableCutTrackPenalty)
 		penalty_log("  tempBanTime = " .. tempBanTime)
