@@ -59,7 +59,7 @@ config : {
 	raceStartDelay: 4
 
 	//When 1, the player will be penalized when he cuts track and gain position while offtrack
-	enableCutTrackPenalty: 1
+	enableCutTrackPenalty: 0
 
 	//Time in seconds to keep a player banned after kick.
 	//10 minutes is recommended, the server seems to ignore something like 1 or 2 minutes.

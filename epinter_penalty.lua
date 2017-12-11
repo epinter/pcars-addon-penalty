@@ -5,7 +5,7 @@ This addon monitors players impact and gives penalty points to them. When the pl
 the server sends a message through chat. The player is kicked when he reaches the Kick level. Each lap a player
 completes a lap without crash, the penalty points are decreased. The same happens when the player crosses the line in P1.
 
-Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
+Copyright (C) 2017  Emerson Pinter <dev@pinter.com.br>
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ Copyright (C) 2016  Emerson Pinter <dev@pinter.com.br>
 
 --]]
 
-local revision=1
+local revision=0
 local major,minor=GetAddonVersion()
 local VERSION=string.format("%d.%d.%d",major,minor,revision)
 
@@ -242,7 +242,7 @@ local function handler_penalty_participant_impact(event)
 			if ( not lastAccident[ participantid ]
 					or ( lastAccident [ participantid ] and lastAccident [ participantid ] < delay )
 					) and participantPos > otherParticipantPos
-					and participant.attributes.CurrentLap <= session.attributes.Race1Length 
+					and participant.attributes.CurrentLap <= session.attributes.RaceLength 
 					and collisionmagnitude >= minCollisionMagnitude then
 				local next = next
 				if next(lastAccident) == nil
@@ -281,7 +281,7 @@ local function handler_penalty_participant_impact(event)
 			if ( not lastAccident[ otherparticipantid ]
 					or ( lastAccident [ otherparticipantid ] and lastAccident [ otherparticipantid ] < delay )
 					) and otherParticipantPos > participantPos 
-					and otherparticipant.attributes.CurrentLap <= session.attributes.Race1Length
+					and otherparticipant.attributes.CurrentLap <= session.attributes.RaceLength
 					and collisionmagnitude >= minCollisionMagnitude then
 				local next = next
 				local firstCrash = 0
